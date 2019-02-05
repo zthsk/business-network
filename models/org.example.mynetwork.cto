@@ -1,0 +1,48 @@
+/** 
+* Honestblocks Pharma trading network 
+*/
+
+namespace org.example.mynetwork
+
+asset medicine identified by medicineID {
+  o String medicineID
+  o String medicineName
+  o DateTime manufactureDate
+  o DateTime expiryDate
+  --> Manufacturer manufacturer
+  --> supplyChainMember owner
+}
+
+asset shipment identified by shipmentID {
+  o String shipmentID
+  o String routeName
+  o String destinationAddress
+  o medicine[] medicineContained
+}
+
+
+concept contact{
+  o String name
+  o String address 
+  o String contact_number
+}
+
+abstract participant supplyChainMember identified by participantKey {
+  o String participantKey
+}
+
+participant Manufacturer extends supplyChainMember{
+  o String manufacturerID
+  o contact contactfield
+}
+
+
+participant Distributor extends supplyChainMember {
+  o String distributorID
+  o contact contactfield
+}
+
+participant Customer extends supplyChainMember {
+  o String customerID
+  o contact contactfield
+}
