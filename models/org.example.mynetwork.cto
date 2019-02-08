@@ -1,9 +1,28 @@
-/** 
-* Honestblocks Pharma trading network 
-*/
-
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 namespace org.example.mynetwork
 
+abstract participant supplyChainMember identified by participantKey {
+  o String participantKey
+}
+
+participant transport identified by transportId{
+  o String transportId
+  o contact transportContact
+}
+
+//Defining an Asset medicine in the network with given properies.
 asset medicine identified by medicineID {
   o String medicineID
   o String medicineName
@@ -13,13 +32,38 @@ asset medicine identified by medicineID {
   --> supplyChainMember owner
 }
 
+//Defining an Asset shipment in the network with given properies.
 asset shipment identified by shipmentID {
   o String shipmentID
+  o String trackingCode
   o String routeName
+  o String originAddress
   o String destinationAddress
-  o medicine[] medicineContained
+  o String currentAddress
+  o shipmentStatus status
+  --> Contract contract
 }
 
+//Defining an Asset contract in the network with given properies.
+asset Contract identified by contractID {
+  o String contractID
+  o medicine[] medicinename
+  o String[] quantity
+  o paymentStatus status
+  o Double price
+  -->supplyChainMember seller
+  -->supplyChainMember buyer  
+}
+
+enum paymentStatus{
+  o PAID
+  o UNPAID
+}
+
+enum shipmentStatus{
+  o DELIVERED
+  o ONTHEWAY
+}
 
 concept contact{
   o String name
@@ -27,22 +71,75 @@ concept contact{
   o String contact_number
 }
 
-abstract participant supplyChainMember identified by participantKey {
-  o String participantKey
-}
-
 participant Manufacturer extends supplyChainMember{
   o String manufacturerID
   o contact contactfield
 }
-
-
 participant Distributor extends supplyChainMember {
   o String distributorID
   o contact contactfield
 }
-
 participant Customer extends supplyChainMember {
   o String customerID
   o contact contactfield
 }
+
+
+//Transactions
+transaction updateShipment {
+  o String newTrackingCode
+  o String newCurrentAddress
+  --> shipment shipment
+}
+
+transaction updateShipmentStatus{
+  o String newShipmentStatus
+  --> shipment shipment
+}
+
+transaction updateMedicine {
+  --> medicine  medicine
+  --> supplyChainMember owner
+}
+transaction createContract{
+  -->supplyChainMember buyer                
+  -->supplyChainMember seller                
+  o medicine[] medicinename
+  o String[] quantity
+  o String destinationAddress
+  o Double price
+  o paymentStatus status
+ }
+transaction createShipment{
+  -->Contract contract                    
+  o String trackingCode
+  o String routeName
+  o String originAddress
+  o String destinationAddress
+  o String currentAddress
+  o shipmentStatus status
+}
+
+transaction updateContract{
+  o paymentStatus new_status
+  -->Contract contract
+}
+
+transaction createMedicine{
+  o String medicineName
+  o DateTime manufactureDate
+  o DateTime expiryDate
+  --> Manufacturer manufacturer
+  --> supplyChainMember owner
+}
+
+transaction deleteShipment{
+  -->shipment Shipment
+}
+
+//Events
+event dShipment{
+  o String message
+  o String detail
+ }
+
