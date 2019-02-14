@@ -2,9 +2,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
  * http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -12,17 +10,9 @@
  * limitations under the License.
  */
 namespace org.example.mynetwork
-
-abstract participant supplyChainMember identified by participantKey {
-  o String participantKey
+abstract participant supplyChainMember identified by participantID {
+  o String participantID
 }
-
-participant transport identified by transportId{
-  o String transportId
-  o contact transportContact
-}
-
-//Defining an Asset medicine in the network with given properies.
 asset medicine identified by medicineID {
   o String medicineID
   o String medicineName
@@ -31,8 +21,6 @@ asset medicine identified by medicineID {
   --> Manufacturer manufacturer
   --> supplyChainMember owner
 }
-
-//Defining an Asset shipment in the network with given properies.
 asset shipment identified by shipmentID {
   o String shipmentID
   o String trackingCode
@@ -42,73 +30,65 @@ asset shipment identified by shipmentID {
   o String currentAddress
   o shipmentStatus status
   --> Contract contract
+  --> transporter transporter
 }
-
-//Defining an Asset contract in the network with given properies.
 asset Contract identified by contractID {
   o String contractID
-  o medicine[] medicinename
+  -->medicine[] medicinesID
   o String[] quantity
   o paymentStatus status
   o Double price
   -->supplyChainMember seller
   -->supplyChainMember buyer  
 }
-
 enum paymentStatus{
   o PAID
   o UNPAID
 }
-
 enum shipmentStatus{
   o DELIVERED
   o ONTHEWAY
 }
-
 concept contact{
   o String name
   o String address 
   o String contact_number
 }
-
 participant Manufacturer extends supplyChainMember{
-  o String manufacturerID
   o contact contactfield
 }
 participant Distributor extends supplyChainMember {
-  o String distributorID
   o contact contactfield
 }
 participant Customer extends supplyChainMember {
-  o String customerID
   o contact contactfield
 }
-
-
+participant transporter identified by transporterID{
+  o String transporterID  
+  o contact contactfield
+}
 //Transactions
 transaction updateShipment {
   o String newTrackingCode
   o String newCurrentAddress
-  --> shipment shipment
+   --> shipment shipment
 }
-
 transaction updateShipmentStatus{
-  o String newShipmentStatus
+  o shipmentStatus newShipmentStatus
   --> shipment shipment
 }
-
 transaction updateMedicine {
   --> medicine  medicine
-  --> supplyChainMember owner
+  --> supplyChainMember newOwner
 }
 transaction createContract{
   -->supplyChainMember buyer                
   -->supplyChainMember seller                
-  o medicine[] medicinename
+  -->medicine[] medicinesID
   o String[] quantity
-  o String destinationAddress
   o Double price
   o paymentStatus status
+  o String contractID
  }
 transaction createShipment{
   -->Contract contract                    
@@ -118,28 +98,56 @@ transaction createShipment{
   o String destinationAddress
   o String currentAddress
   o shipmentStatus status
+  o String shipmentID
 }
-
 transaction updateContract{
-  o paymentStatus new_status
+  o paymentStatus newPaymentStatus
   -->Contract contract
 }
-
 transaction createMedicine{
+  o String medicineID
   o String medicineName
   o DateTime manufactureDate
   o DateTime expiryDate
   --> Manufacturer manufacturer
   --> supplyChainMember owner
 }
-
 transaction deleteShipment{
   -->shipment Shipment
 }
-
 //Events
-event dShipment{
+event error{
   o String message
   o String detail
+}
+event updateShipmentEvent {
+  o String newTrackingCode
+  o String newCurrentAddress
+}
+event updateContractEvent {
+  o paymentStatus newPaymentStatus
  }
-
+ event deleteShipmentEvent {
+  o String shipmentID
+  o shipmentStatus status
+}
+event createMedicineEvent {
+  o String medicineID
+  o String medicineName
+}
+ event createContractEvent{           
+  o paymentStatus status
+  o medicine[] medicinename
+  o String[] quantity
+ }
+ event createShipmentEvent{                    
+  o String trackingCode
+  o shipmentStatus status
+}
+event updateShipmentStatusEvent {
+  o shipmentStatus newStatus
+}
+event updateMedicineEvent {
+  o medicine  medicine
+  o supplyChainMember newOwner
+}
